@@ -219,6 +219,12 @@ Select Load driver, browse to the VirtIO CD-ROM, and navigate to `viostor/w11/am
 Proceed with the Windows installation as usual. When the computer reboots into the installer with the Windows 11 UI and prompts for a country, open the command line with Shift + F10 and run:
 
 ```ps1
+start ms-cxh:localonly
+```
+
+or 
+
+```ps1
 oobe/bypassnro
 ```
 
