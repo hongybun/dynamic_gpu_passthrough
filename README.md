@@ -156,7 +156,7 @@ Update GRUB:
 sudo update-grub
 ``` 
 
-Open `/etc/initramfs-tools/modules` as root and add the following lines to the end:
+Open `/etc/initramfs-tools/modules` as root (`sudo nano /etc/initramfs-tools/modules`) and add the following lines to the end:
 ```bash
 vfio 
 vfio_iommu_type1 
@@ -167,7 +167,7 @@ vhost-net
 Make sure these are loaded on boot with: 
 
 ```bash
-sudo update-initramfs –u
+sudo update-initramfs -u
 ```
 
 Reboot and run:
