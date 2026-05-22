@@ -276,6 +276,10 @@ Proceed with the driver installation. Probably do not select the USB-C driver un
 
 After installation, restart the Windows VM, open Task Manager, and check the Resources tab. The NVIDIA dGPU should show up with the expected specifications. Also check Device Manager and make sure that the NVIDIA GPU shows up there under Display as well. The Windows VM should now be able to use the GPU. 
 
+### Install Virtual Display Driver
+
+Download and install the latest version of Virtual Driver Control here and follow the instructions: https://github.com/VirtualDrivers/Virtual-Display-Driver/releases.
+
 ## 6. Set up Looking Glass for near-native response time and performance. 
 
 ### Build the Looking Glass client on Ubuntu 
