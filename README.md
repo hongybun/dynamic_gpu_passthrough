@@ -287,7 +287,7 @@ Download and install the latest version of Virtual Driver Control here and follo
 Install dependencies: 
 
 ```bash
-sudo apt install binutils-dev cmake fonts-dejavu-core libfontconfig-dev gcc g++ pkg-config libegl-dev libgl-dev libgles-dev libspice-protocol-dev nettle-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxpresent-dev libxss-dev libxkbcommon-dev libwayland-dev wayland-protocols libpipewire-0.3-dev libpulse-dev libsamplerate0-dev
+sudo apt install binutils-dev cmake fonts-dejavu-core libfontconfig-dev gcc g++ pkg-config libegl-dev libgl-dev libgles-dev libspice-protocol-dev nettle-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxpresent-dev libxss-dev libxkbcommon-dev libwayland-dev wayland-protocols libpipewire-0.3-dev libpulse-dev libsamplerate0-dev libdecor-0-dev
 ```
 
 Download the source files: https://looking-glass.io/downloads. Go to the latest stable version in the table and select Source. Decompress the downloaded file and navigate into it. Navigate to client, then create a folder named build. 
@@ -295,7 +295,7 @@ Download the source files: https://looking-glass.io/downloads. Go to the latest 
 In the build folder (`looking-glass-b7/client/build`) open a terminal and run:
 
 ```bash
-cmake ../ 
+cmake -DENABLE_LIBDECOR=ON ../
 make
 ```
 
