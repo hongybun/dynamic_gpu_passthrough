@@ -409,7 +409,7 @@ At the bottom of the XML file, after the closing `</devices>` block and before t
  <qemu:arg value="-device"/> 
  <qemu:arg value="{'driver':'ivshmem-plain','id':'shmem0','memdev':'looking-glass'}"/> 
  <qemu:arg value="-object"/> 
- <qemu:arg value="{'qom-type':'memory-backend-file','id':'looking-glass','mem-path':'/dev/kvmfr0','size':33554432,'share':true}"/> 
+ <qemu:arg value="{'qom-type':'memory-backend-file','id':'looking-glass','mem-path':'/dev/kvmfr0','size':134217728,'share':true}"/> 
 </qemu:commandline> 
 ```
 
