@@ -413,6 +413,21 @@ At the bottom of the XML file, after the closing `</devices>` block and before t
 </qemu:commandline> 
 ```
 
+The physical address space doesn't seem to be allocated correctly in QEMU for the Lenovo Legion Pro 7. If the VM crashes immediately upon starting with no error message, this may be the issue. In the `<cpu mode='host-passthrough' check='none' migratable='on'>` block, add:
+
+```xml
+<maxphysaddr mode='passthrough' limit='39'/>
+```
+
+The full block should look something like this:
+
+```xml
+<cpu mode='host-passthrough' check='none' migratable='on'>
+  <topology sockets='1' dies='1' cores='12' threads='1'/>
+  <maxphysaddr mode='passthrough' limit='39'/>
+</cpu>
+```
+
 For audio passthrough, edit the sound and audio blocks to be: 
 
 ```xml
