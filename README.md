@@ -171,7 +171,7 @@ Run:
 systemctl --user edit org.gnome.Shell@wayland.service
 ```
 
-Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo. This is a little hacky, so if the system has stability issues, it may be worth skipping this step and trying the method **2: Edit Mutter udev rules** instead.
+Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo. This is a little hacky, so if the system has stability issues, it may be worth skipping this step and trying [method 2](#2:-edit-mutter-udev-rules) instead.
 
 ```bash
 [Service] 
@@ -217,7 +217,7 @@ render-drm-device "/dev/dri/by-path/pci-0000:00:02.0-render"
 ignore-drm-device "/dev/dri/by-path/pci-0000:02:00.0-card"
 ```
 
-### After making the change, double check that they were successful with
+### After making the changes, double check that they were successful with
 
 ```bash
 nvidia-smi
