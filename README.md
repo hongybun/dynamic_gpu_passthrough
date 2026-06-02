@@ -58,11 +58,16 @@ Open terminal and run `sudo apt update && sudo apt upgrade` to update all curren
 
 ### Install NVIDIA drivers 
 
-Check for available NVIDIA drivers. In this example, the NVIDIA 580 open-source drivers have been used, but the latest drivers should work as well.
+Check for available NVIDIA drivers. In this example, the NVIDIA 580 and 595 open-source drivers have been used, but the latest drivers should work as well.
 
 ```bash
 sudo ubuntu-drivers list
-sudo ubuntu-drivers install nvidia:580-open
+```
+
+Install one of the drivers with the following, where `xxx` is the version number:
+
+```bash
+sudo ubuntu-drivers install nvidia:xxx-open
 ```
 
 Reboot, then run `nvidia-smi` in the terminal to confirm that the drivers are loaded. 
@@ -87,90 +92,32 @@ sudo dmesg | grep -E "VT-d|AMD-Vi"
 
 This should show `VT-d active`. If it doesn’t, make sure that VT-d is turned on in the BIOS and dynamic graphics is enabled, if that setting is available. 
 
-Next, run:
-
-```bash
-nvidia-smi
-```
-
-This should show `No running processes found`. Also check that:
-
-```bash
-sudo fuser -v /dev/nvidia* 2>/dev/null
-```
-outputs nothing. 
-
-If any of these show that Xorg has a process open, log out and make sure that Wayland is selected on the login screen. 
-
-### In the likely case that these show that `gnome-shell` has an active process on the dGPU, add a GNOME shell override: 
-
-Run:
-```bash
-systemctl --user edit org.gnome.Shell@wayland.service
-```
-
-Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo: 
-
-```bash
-[Service] 
-ExecStartPre=/usr/bin/mkdir -p /tmp/egl_vendor.d 
-ExecStartPre=/usr/bin/rm -f /tmp/egl_vendor.d/10_nvidia.json 
-ExecStartPre=/usr/bin/ln -fs /usr/share/glvnd/egl_vendor.d/50_mesa.json /tmp/egl_vendor.d/50_mesa.json 
-Environment=__EGL_VENDOR_LIBRARY_DIRS=/tmp/egl_vendor.d 
-ExecStartPost=/usr/bin/ln -fs /usr/share/glvnd/egl_vendor.d/10_nvidia.json /tmp/egl_vendor.d/10_nvidia.json 
-```
-
-Run:
-
-```bash
-systemctl --user daemon-reload
-``` 
-
-Reboot. Double check that Wayland is selected on the login screen. 
-
-Double check: 
-
-```bash
-nvidia-smi
-sudo fuser -v /dev/nvidia* 2>/dev/null
-```
-
-These should now show that no processes are running on the dGPU. 
-
-## 3. Setup for the virtual machine 
-
-### Install virt-manager to manage the virtual machine 
-
-Install dependencies:
-
-```bash
-sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf 
-```
-
 Edit GRUB by opening `/etc/default/grub` as root 
 
 ```bash
 sudo nano /etc/default/grub
 ```
 
-Find this line: 
+Find the line starting with: 
 
 ```bash
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+GRUB_CMDLINE_LINUX_DEFAULT=
 ```
 
-and change it to  
+and add `intel_iommu=on iommu=pt` inside the quotation marks, so the line looks something like this:
 
 ```bash
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt"
 ```
 
 Update GRUB: 
+
 ```bash
 sudo update-grub
 ``` 
 
 Open `/etc/initramfs-tools/modules` as root (`sudo nano /etc/initramfs-tools/modules`) and add the following lines to the end:
+
 ```bash
 vfio 
 vfio_iommu_type1 
@@ -185,13 +132,110 @@ sudo update-initramfs -u
 ```
 
 Reboot and run:
+
 ```bash
 sudo dmesg | grep -e DMAR -e IOMMU
 ```
 
 This should output a line that says 
+
 ```bash
 DMAR: Intel(R) Virtualization Technology for Directed I/O
+```
+
+Next, run:
+
+```bash
+nvidia-smi
+```
+
+This should show `No running processes found`. Also check that:
+
+```bash
+sudo fuser -v /dev/nvidia* 2>/dev/null
+```
+
+outputs nothing. If either of these show any processes open, try the following, depending on the system configuration:
+
+### Ubuntu Desktop 24.04 LTS with GNOME
+
+Log out and make sure that Wayland is selected on the login screen. 
+
+In the likely case that `nvidia-smi` shows that `gnome-shell` has an active process on the dGPU, there are two possible fixes:
+
+#### 1: Add a GNOME shell override: 
+
+Run:
+
+```bash
+systemctl --user edit org.gnome.Shell@wayland.service
+```
+
+Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo. This is a little hacky, so if the system has stability issues, it may be worth skipping this step and trying the method **2: Edit Mutter udev rules** instead.
+
+```bash
+[Service] 
+ExecStartPre=/usr/bin/mkdir -p /tmp/egl_vendor.d 
+ExecStartPre=/usr/bin/rm -f /tmp/egl_vendor.d/10_nvidia.json 
+ExecStartPre=/usr/bin/ln -fs /usr/share/glvnd/egl_vendor.d/50_mesa.json /tmp/egl_vendor.d/50_mesa.json 
+Environment=__EGL_VENDOR_LIBRARY_DIRS=/tmp/egl_vendor.d 
+ExecStartPost=/usr/bin/ln -fs /usr/share/glvnd/egl_vendor.d/10_nvidia.json /tmp/egl_vendor.d/10_nvidia.json 
+```
+
+Run:
+
+```bash
+systemctl --user daemon-reload
+```
+
+Reboot. Double check that Wayland is selected on the login screen.
+
+#### 2: Edit Mutter udev rules
+
+If editing `org.gnome.Shell@wayland.service` causes stability issues, try editing `/etc/udev/rules.d/61-mutter-primary-gpu.rules` and adding the following, replacing the hardware components in `ENV{ID_PATH}==` with the iGPU and dGPU, respectively. This is untested.
+
+```bash
+# Prefer Intel/iGPU card as Mutter primary
+SUBSYSTEM=="drm", KERNEL=="card*", ENV{ID_PATH}=="pci-0000:00:02.0", TAG+="mutter-device-preferred-primary"
+
+# Try to make Mutter ignore the other DRM/KMS card, if supported by your Mutter build
+SUBSYSTEM=="drm", KERNEL=="card*", ENV{ID_PATH}=="pci-0000:02:00.0", TAG+="mutter-device-ignore"
+```
+
+### Ubuntu Server 26.04 with Niri and DankMaterialShell
+
+Edit the Niri configuration with 
+
+```bash
+nano ~/.config/niri/config.kdl
+```
+
+Navigate to the `debug` section near the bottom of the file and add the following lines inside the curly brackets. Edit the pci path of `render-drm-device` to the iGPU path and `ignore-drm-device` to the dGPU path.
+
+```bash
+render-drm-device "/dev/dri/by-path/pci-0000:00:02.0-render"
+ignore-drm-device "/dev/dri/by-path/pci-0000:02:00.0-card"
+```
+
+### After making the change, double check that they were successful with
+
+```bash
+nvidia-smi
+sudo fuser -v /dev/nvidia* 2>/dev/null
+```
+
+These should now show that no processes are running on the dGPU. 
+
+###
+
+## 3. Setup for the virtual machine 
+
+### Install virt-manager to manage the virtual machine 
+
+Install dependencies:
+
+```bash
+sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf 
 ```
 
 ### Set up the virtual machine 
