@@ -171,7 +171,7 @@ Run:
 systemctl --user edit org.gnome.Shell@wayland.service
 ```
 
-Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo. This is a little hacky, so if the system has stability issues, it may be worth skipping this step and trying [method 2](#2:-edit-mutter-udev-rules) instead.
+Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo. This is a little hacky, so if the system has stability issues, it may be worth skipping this step and trying [method 2](#2-edit-mutter-udev-rules) instead.
 
 ```bash
 [Service] 
