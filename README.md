@@ -275,6 +275,8 @@ Install dependencies:
 sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf 
 ```
 
+On Ubuntu 26.04, `qemu-kvm` will likely need to be replaced with `qemu-system-x86`. 
+
 ### Set up the virtual machine 
 
 Download the [latest Windows 11 .iso](https://www.microsoft.com/en-us/software-download/windows11)
