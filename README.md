@@ -161,11 +161,11 @@ outputs nothing. If either of these show any processes open, try the following, 
 
 Log out and make sure that Wayland is selected on the login screen. 
 
-In the likely case that `nvidia-smi` shows that `gnome-shell` has an active process on the dGPU, there are two possible fixes:
+In the likely case that `nvidia-smi` shows that there are active processes on the dGPU, there are two possible fixes:
 
 #### 1: Add a GNOME shell override: 
 
-Run:
+If gnome-shell has an active process, log out and double check that Wayland is selected on the login screen, then log back in and run:
 
 ```bash
 systemctl --user edit org.gnome.Shell@wayland.service
@@ -188,7 +188,7 @@ Run:
 systemctl --user daemon-reload
 ```
 
-Reboot. Double check that Wayland is selected on the login screen.
+Reboot. Double check once again that Wayland is selected on the login screen.
 
 #### 2: Edit Mutter udev rules
 
@@ -201,6 +201,8 @@ SUBSYSTEM=="drm", KERNEL=="card*", ENV{ID_PATH}=="pci-0000:00:02.0", TAG+="mutte
 # Try to make Mutter ignore the other DRM/KMS card, if supported by your Mutter build
 SUBSYSTEM=="drm", KERNEL=="card*", ENV{ID_PATH}=="pci-0000:02:00.0", TAG+="mutter-device-ignore"
 ```
+
+Then reboot.
 
 ### Ubuntu Server 26.04 with Niri and DankMaterialShell
 
@@ -215,6 +217,24 @@ Navigate to the `debug` section near the bottom of the file and add the followin
 ```bash
 render-drm-device "/dev/dri/by-path/pci-0000:00:02.0-render"
 ignore-drm-device "/dev/dri/by-path/pci-0000:02:00.0-card"
+```
+
+Reboot. Then, check for processes again:
+
+```bash
+sudo fuser -v /dev/nvidia* 2>/dev/null
+```
+
+If there is still a process there and `nvidia-smi` shows no running processes, the remaining process is likely nvidia-powerd. It can be safely disabled with:
+
+```bash
+sudo systemctl disable --now nvidia-powerd.service
+```
+
+If the PID corresponds to `nvidia-persistenced.service`, it can also be safely disabled with:
+
+```bash
+sudo systemctl disable --now nvidia-persistenced.service
 ```
 
 ### After making the changes, double check that they were successful with
