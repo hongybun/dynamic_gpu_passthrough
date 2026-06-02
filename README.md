@@ -19,7 +19,7 @@ NVIDIA 580-open, virtio-win-0.1.285.iso, Looking Glass B7
 
 #### OS
 
-Ubuntu Server 26.04 LTS with Niri and DankMaterialShell, installed through the DankLinux installer (https://danklinux.com/docs/getting-started), Windows 11 25H2 (virtual machine). NVIDIA 580-open, virtio-win-0.1.285.iso, Looking Glass B7
+Ubuntu Server 26.04 LTS with Niri and DankMaterialShell, installed through the [DankLinux installer](https://danklinux.com/docs/getting-started), Windows 11 25H2 (virtual machine). NVIDIA 580-open, virtio-win-0.1.285.iso, Looking Glass B7
 
 #### Software/drivers
 
@@ -36,7 +36,7 @@ Ubuntu crashes when external display is connected. If the Windows VM is on, it c
 
 ## 1. BIOS setup and Ubuntu installation
 
-Format a >8GB flash drive as FAT32 for maximum compatibility with UEFI/BIOS, download the Ubuntu 24.04 LTS .iso, and copy it onto the flash drive. https://releases.ubuntu.com/noble/. Shut down the computer and leave the flash drive plugged in. 
+Format a >8GB flash drive as FAT32 for maximum compatibility with UEFI/BIOS, download the [Ubuntu Desktop 24.04 LTS .iso](https://releases.ubuntu.com/noble/) or [Ubuntu Server 26.04 .iso](https://releases.ubuntu.com/resolute), and copy it onto the flash drive. Shut down the computer and leave the flash drive plugged in.
 
 ### BIOS settings
 
@@ -48,9 +48,12 @@ The computer should now boot from the flash drive and load the Ubuntu .iso.
 
 ### Install Ubuntu
 
-Follow the instructions to install Ubuntu 24.04 LTS on the primary drive. Do not select the option to install additional drivers or codecs. These can be installed as needed afterwards.
+Follow the instructions to install the downloaded Ubuntu on the primary drive. Do not select the option to install additional drivers or codecs. These can be installed as needed afterwards.
 
-Select the option to wipe the entire drive during installation (disregard if the drive has custom partitions set up). Proceed with the installation and follow the instructions on screen.
+Select the option to wipe the entire drive during installation. Proceed with the installation and follow the instructions on screen.
+
+If using Ubuntu Server 26.04, install DankMaterialShell by following their directions [here](
+https://danklinux.com/)
 
 ## 2. Install drivers and clear processes from dGPU 
 
@@ -155,7 +158,15 @@ This should show `No running processes found`. Also check that:
 sudo fuser -v /dev/nvidia* 2>/dev/null
 ```
 
-outputs nothing. If either of these show any processes open, try the following, depending on the system configuration:
+outputs nothing. If either of these show any processes open, try the following, depending on the system configuration. 
+
+First, check the PCI addresses of the computer's video cards with:
+
+```bash
+find /sys/kernel/iommu_groups/ -type l -exec basename {} \; | sort | xargs -I % lspci -nns % | grep 'VGA'
+```
+
+and note the output. In this guide, `00:02.0` corresponds to an Intel iGPU and `02:00:0` corresponds to an Nvidia dGPU and should be changed to the addresses of the user's system accordingly.
 
 ### Ubuntu Desktop 24.04 LTS with GNOME
 
@@ -266,9 +277,9 @@ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-
 
 ### Set up the virtual machine 
 
-Download the latest Windows 11 .iso: https://www.microsoft.com/en-us/software-download/windows11 
+Download the [latest Windows 11 .iso](https://www.microsoft.com/en-us/software-download/windows11)
 
-Download the latest .iso version of virtio-win-guest-tools: https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/. 
+Download the latest .iso version of [virtio-win-guest-tools](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/)
 
 Start virt-manager (Virtual Machine Manager). Select File > New Virtual Machine. In the pop-up window, select "Local install media" and select Forward.
 
@@ -284,7 +295,7 @@ Open the Details page for the new VM. In the CPU tab, make sure that “Copy hos
 
 In the Disk drive tab, make sure that the Disk bus is set to virtio. 
 
-In the NIC :xx:xx:xx:xx tab, make sure that Device model is set to virtio. 
+In the NIC `:xx:xx:xx:xx` tab, make sure that Device model is set to virtio. 
 
 In the TPM tab, make sure that Type is Emulated, Model is CRB, and Version is 2.0. 
 
@@ -321,6 +332,7 @@ Download the files in this repo by clicking the “<> Code” dropdown and then 
 Open the Ubuntu file manager and select the address bar. Type `admin://` to open as root and navigate to `/etc/libvirt/hooks`. Copy everything in the `hooks` folder from the downloaded GitHub repo to `/etc/libvirt/hooks`. 
 
 Find the GPU IOMMU group by running 
+
 ```bash
 find /sys/kernel/iommu_groups/ -type l -exec basename {} \; | sort | xargs -I % lspci -nns %
 ```
@@ -362,7 +374,7 @@ After installation, restart the Windows VM, open Task Manager, and check the Res
 
 ### Install Virtual Display Driver
 
-Download and install the latest version of Virtual Driver Control here and follow the instructions: https://github.com/VirtualDrivers/Virtual-Display-Driver/releases.
+Download and install the latest version of [Virtual Driver Control](https://github.com/VirtualDrivers/Virtual-Display-Driver/releases) and follow the instructions there.
 
 ## 6. Set up Looking Glass for near-native response time and performance. 
 
@@ -374,7 +386,7 @@ Install dependencies:
 sudo apt install binutils-dev cmake fonts-dejavu-core libfontconfig-dev gcc g++ pkg-config libegl-dev libgl-dev libgles-dev libspice-protocol-dev nettle-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxpresent-dev libxss-dev libxkbcommon-dev libwayland-dev wayland-protocols libpipewire-0.3-dev libpulse-dev libsamplerate0-dev libdecor-0-dev
 ```
 
-Download the source files: https://looking-glass.io/downloads. Go to the latest stable version in the table and select Source. Decompress the downloaded file and navigate into it. Navigate to client, then create a folder named build. 
+Download the [Looking Glass source files](https://looking-glass.io/downloads). Go to the latest stable version in the table and select Source. Decompress the downloaded file and navigate into it. Navigate to client, then create a folder named build. 
 
 In the build folder (`looking-glass-b7/client/build`) open a terminal and run:
 
@@ -403,7 +415,8 @@ Browse to `looking-glass-b7/module` and run:
 dkms install "."
 ``` 
 
-Create `/etc/modprobe.d/kvmfr.conf` and add the following line, replacing `128` with the desired amount of memory calculated earlier
+Create `/etc/modprobe.d/kvmfr.conf` and add the following line, replacing `128` with the desired amount of memory calculated earlier:
+
 ```bash
 options kvmfr static_size_mb=128
 ```
@@ -497,7 +510,7 @@ At the bottom of the XML file, after the closing `</devices>` block and before t
 </qemu:commandline> 
 ```
 
-The physical address space doesn't seem to be allocated correctly in QEMU for the Lenovo Legion Pro 7. If the VM crashes immediately upon starting with no error message, this may be the issue. In the `<cpu mode='host-passthrough' check='none' migratable='on'>` block, add:
+The physical address space doesn't seem to be allocated correctly in QEMU for the Lenovo Legion Pro 7. If the VM crashes immediately upon starting with no error message, this may be the issue. To fix it, in the `<cpu mode='host-passthrough' check='none' migratable='on'>` block, add:
 
 ```xml
 <maxphysaddr mode='passthrough' limit='39'/>
@@ -521,7 +534,7 @@ For audio passthrough, edit the sound and audio blocks to be:
 <audio id='1' type='spice'/> 
 ```
 
-For clipboard synchronization between the VM and Ubuntu, install SPICE guest tools onto the Windows VM (https://www.spice-space.org/download.html#windows-binaries) and edit the spicevmc channel block in the VM’s XML to: 
+For clipboard synchronization between the VM and Ubuntu, install [SPICE guest tools](https://www.spice-space.org/download.html#windows-binaries) onto the Windows VM and edit the spicevmc channel block in the VM’s XML to: 
 
 ```xml
 <channel type="spicevmc"> 
@@ -530,7 +543,7 @@ For clipboard synchronization between the VM and Ubuntu, install SPICE guest too
 </channel> 
 ```
 
-Find the <memballoon> block in the VM’s XML and replace the entire block with: 
+Find the `<memballoon>` block in the VM’s XML and replace the entire block with: 
 
 ```xml
 <memballoon model="none"/> 
@@ -540,7 +553,7 @@ Reboot.
 
 ### Install the Looking Glass host on the Windows VM  
 
-Start the Windows VM and download the latest stable Looking Glass Windows host binary: https://looking-glass.io/downloads. Install it as administrator and follow the prompts. 
+Start the Windows VM and download the latest stable [Looking Glass Windows host binary](https://looking-glass.io/downloads). Install it as administrator and follow the prompts. 
 
 ### Add clean shutdown scripts to prevent errors when restarting or shutting down 
 
@@ -567,7 +580,7 @@ Check that it is active by running
 systemctl status win11-clean-shutdown.service
 ```
 
-Reboot and confirm that the system doesn't hang. If successful, the virtual machine should be working with Looking Glass and GPU Passthrough! Make sure to always start the virtual machine before starting Looking Glass. Always shut down the virtual machine before shutting down Ubuntu.
+Reboot and confirm that the system doesn't hang. If successful, the virtual machine should be working with Looking Glass and GPU Passthrough! Make sure to always start the virtual machine before starting Looking Glass. Always shut down the virtual machine first before shutting down Ubuntu.
 
 ## Optional tweaks 
 
