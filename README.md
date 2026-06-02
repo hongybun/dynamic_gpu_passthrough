@@ -173,7 +173,7 @@ systemctl --user edit org.gnome.Shell@wayland.service
 
 Add the following lines, found in `org.gnome.Shell@wayland.service` in this repo. This is a little hacky, so if the system has stability issues, it may be worth skipping this step and trying [method 2](#2-edit-mutter-udev-rules) instead.
 
-```bash
+```ini
 [Service] 
 ExecStartPre=/usr/bin/mkdir -p /tmp/egl_vendor.d 
 ExecStartPre=/usr/bin/rm -f /tmp/egl_vendor.d/10_nvidia.json 
@@ -194,7 +194,7 @@ Reboot. Double check once again that Wayland is selected on the login screen.
 
 If editing `org.gnome.Shell@wayland.service` causes stability issues, try editing `/etc/udev/rules.d/61-mutter-primary-gpu.rules` and adding the following, replacing the hardware components in `ENV{ID_PATH}==` with the iGPU and dGPU, respectively. This is untested.
 
-```bash
+```ini
 # Prefer Intel/iGPU card as Mutter primary
 SUBSYSTEM=="drm", KERNEL=="card*", ENV{ID_PATH}=="pci-0000:00:02.0", TAG+="mutter-device-preferred-primary"
 
@@ -214,7 +214,7 @@ nano ~/.config/niri/config.kdl
 
 Navigate to the `debug` section near the bottom of the file and add the following lines inside the curly brackets. Edit the pci path of `render-drm-device` to the iGPU path and `ignore-drm-device` to the dGPU path.
 
-```bash
+```ini
 render-drm-device "/dev/dri/by-path/pci-0000:00:02.0-render"
 ignore-drm-device "/dev/dri/by-path/pci-0000:02:00.0-card"
 ```
@@ -225,13 +225,19 @@ Reboot. Then, check for processes again:
 sudo fuser -v /dev/nvidia* 2>/dev/null
 ```
 
-If there is still a process there and `nvidia-smi` shows no running processes, the remaining process is likely nvidia-powerd. It can be safely disabled with:
+If there is still a process there and `nvidia-smi` shows no running processes, check what the PID corresponds to by running:
+
+```bash
+sudo sh -c "tr '\0' '\n' < /proc/1962/environ" | grep -Ei 'NVIDIA|CUDA|EGL|VK|DRI|PRIME|GLX'
+```
+
+The remaining process is likely `nvidia-powerd` or `nvidia-persistenced`. Either can be safely disabled with:
 
 ```bash
 sudo systemctl disable --now nvidia-powerd.service
 ```
 
-If the PID corresponds to `nvidia-persistenced.service`, it can also be safely disabled with:
+or
 
 ```bash
 sudo systemctl disable --now nvidia-persistenced.service
