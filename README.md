@@ -414,7 +414,7 @@ sudo apt install linux-headers-$(uname -r) dkms
 Browse to `looking-glass-b7/module` and run:
 
 ```bash
-dkms install "."
+sudo dkms install "."
 ``` 
 
 Create `/etc/modprobe.d/kvmfr.conf` and add the following line, replacing `128` with the desired amount of memory calculated earlier:
@@ -426,13 +426,13 @@ options kvmfr static_size_mb=128
 Run: 
 
 ```bash
-modprobe kvmfr
+sudo modprobe kvmfr
 ```
 
 Then, run:
 
 ```bash
-dmesg | grep “kvmfr”
+sudo dmesg | grep “kvmfr”
 ```
 
 The following line should show up. This may or may not work, but if it does, that's a good sign.
@@ -485,7 +485,7 @@ Create `/etc/apparmor.d/local/abstractions/libvirt-qemu` and add:
 /dev/kvmfr0 rw, 
 ```
 
-Edit `/etc/libvirt/qemu.conf`. Find the `cgroup_device_acl`, uncomment it, and add `"/dev/kvmfr0"` to the end of the list. Make sure to add a comma to the previous entry in the list. 
+Edit `/etc/libvirt/qemu.conf`. Find the `cgroup_device_acl`, uncomment it, and add `"/dev/kvmfr0"` to the end of the list. Make sure to add a comma to the previous entry in the list. If on Ubuntu 26, also add `"/dev/kvm"` to the end of the list.
 
 Restart livirtd: 
 
