@@ -589,7 +589,7 @@ Reboot and confirm that the system doesn't hang. If successful, the virtual mach
 Edit the Looking Glass capture key from the default ScrollLock to Insert by opening `/etc/looking-glass-client.ini` and adding the following:
 
 ```ini
-[input] 
+[input]
 escapeKey=KEY_INSERT
 ```
 
